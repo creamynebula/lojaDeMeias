@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+	<div class="nav-bar"></div>
+	<div id="app">
+		
+		<div class="product">
+			<div class="product-image">
+				<img :src="image">
+			</div> <!--fim product-image-->
+			<div class="product-info">
+
+				<h1>{{ title }}</h1>
+				<p v-show="inStock > 10">Em estoque! Restam {{inStock}} em estoque<br><b>{{promocao}}</b></p>
+				<p v-show="inStock <= 10 && inStock > 0">Corre que tá acabando! Restam {{inStock}} em estoque<br><b>{{promocao}}</b></p>
+				<p v-show="inStock <= 0" :class="classeRiscado">Fora de estoque.</p>
+
+				<ul>
+					<li v-for="x in atributos">{{ x }}</li>
+				</ul>
+
+				<div v-for="(x, index) in produtos" 
+				:key="x.id" 
+				class="color-box" 
+				:style="{ backgroundColor: x.color }"
+				@mouseover="updateProduct(index)">
+				</div> <!--fim v-for produtos-->
+
+				<!--qdo !inStock, disabled button e mude classe pra disabledButton-->
+				<button v-on:click="addToCart" :disabled="!inStock" :class="{ disabledButton: !inStock }" id="botaoCart">Adicionar ao Carrinho</button>
+
+				<div class="cart">
+					<p>Carrinho({{ carrinho }})</p>
+				</div>
+				<br>
+				<button v-on:click="flipEstoque">Enche/esvazia estoque</button>
+
+			</div> <!--fim product-info-->
+		</div> <!--fim product-->
+
+	</div>
+	
+<!-- development version, includes helpful console warnings -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script>
+	
+	let vm = new Vue({
+		el: '#app',
+		data: {
+			product: 'Meias',
+			brand: 'de Fibra de Carbono',
+			produtoSelecionado: 0,
+			atributos: ["80% algodão","20% poliéster","made in Iceland"],
+			produtos: [
+				{id: 1, color: 'Green', cor: 'verde', image: './imagens/socks-green.png', quantidade: 11, emPromocao: false},
+				{id: 2, color: 'Blue', cor: 'azul', image: './imagens/socks-blue.png', quantidade: 8, emPromocao: true}
+				],
+			carrinho: 0,
+			classeRiscado: {
+				riscado: true
+			}
+		}, //fim data
+
+		computed: {
+			title() {
+				return this.product + ' ' + this.brand;
+			},
+			image() {
+				return this.produtos[this.produtoSelecionado].image; //retorna a imagem do produto selecionado
+			},
+			inStock() {
+				return this.produtos[this.produtoSelecionado].quantidade; //inStock retorna a quantidade em estoque do produto selecionado
+			},
+			estoque() {
+				let i, resultado = 0;
+				for (i=0; i < this.produtos.length; i++) 
+					resultado += this.produtos[i].quantidade; //soma os produtos do estoque
+				return resultado; //retorna o estoque total
+			}, //fim estoque
+			emPromocao() {
+				if (this.produtos[this.produtoSelecionado].emPromocao) return true;
+					else return false;
+			},
+			promocao() {
+				if (this.produtos[this.produtoSelecionado].emPromocao == true) {
+					return 'A meia ' + this.produtos[this.produtoSelecionado].cor + ' está em promoção, corra!';
+				} //fim if
+			}, //fim promocao
+		}, //fim computed
+
+		methods: {
+			
+			flipEstoque() {
+				
+				if (this.estoque == 0) { //se o estoque estiver vazio
+					let i;
+					for (i = 0; i < this.produtos.length; i++) //percorre a lista de produtos
+						this.produtos[i].quantidade = 15; //15 meias de cada
+					this.classeRiscado.riscado = false; //não está fora de estoque, tira o risco
+					document.getElementById("botaoCart").disabled = false; //ativa o botão submit
+				}
+					else { //se o estoque não estiver vazio
+						for (i = 0; i < this.produtos.length; i++) //percorre a lista de produtos
+							this.produtos[i].quantidade = 0; //esvazia o estoque
+					this.classeRiscado.riscado = true; //risca o texto
+					document.getElementById("botaoCart").disabled = true; //desativa o submit
+					}
+
+					this.carrinho = 0; //esvazia o carrinho
+
+			}, //fim flipEstoque
+			addToCart() {
+				this.carrinho += 1;
+				this.produtos[this.produtoSelecionado].quantidade -= 1; //tira a unidade do estoque
+			}, //fim addToCart
+			updateProduct(index) {
+				this.produtoSelecionado = index;
+			}, //fim updateProduct
+
+		} //fim methods
+		
+	}) //fim Vue
+	
+</script>
+
+</html>
